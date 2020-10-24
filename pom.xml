@@ -8,16 +8,17 @@
     <artifactId>dddapi</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>dddapi</name>
+    <name>ddd</name>
 
     <build>
-        <finalName>fixer</finalName>
+        <finalName>ddd</finalName>
     </build>
 
     <properties>
         <jersey.version>2.28</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
+        <pmdVersion>6.21.0</pmdVersion>
     </properties>
 
     <dependencyManagement>
@@ -118,6 +119,34 @@
           <version>5.5.1</version>
           <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-suite-api -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite-api</artifactId>
+            <version>1.6.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-runner -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-runner</artifactId>
+            <version>1.6.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.6.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-engine -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-engine</artifactId>
+            <version>1.6.0</version>
+            <scope>test</scope>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
         <dependency>
           <groupId>org.mockito</groupId>
@@ -126,7 +155,6 @@
           <scope>test</scope>
         </dependency>
     </dependencies>
-
     <profiles>
         <profile>
             <id>local</id>
@@ -135,6 +163,9 @@
             </activation>
             <build>
                 <resources>
+                  <resource>
+                      <directory>config/common</directory>
+                  </resource>
                   <resource>
                       <directory>config/local</directory>
                   </resource>
@@ -177,16 +208,150 @@
                       <artifactId>maven-failsafe-plugin</artifactId>
                       <version>2.22.2</version>
                     </plugin>
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-checkstyle-plugin</artifactId>
+                      <version>3.1.1</version>
+                      <dependencies>
+                       <dependency>
+                         <groupId>com.puppycrawl.tools</groupId>
+                         <artifactId>checkstyle</artifactId>
+                         <version>8.29</version>
+                       </dependency>
+                     </dependencies>
+                     <configuration>
+                       <configLocation>google_checks.xml</configLocation>
+                       <failsOnError>true</failsOnError>
+                       <failOnViolation>true</failOnViolation>
+                       <violationSeverity>error</violationSeverity>
+                       <consoleOutput>true</consoleOutput>
+                     </configuration>
+                     <executions>
+                       <execution>
+                         <id>checkstyle</id>
+                         <phase>verify</phase>
+                           <goals>
+                             <goal>check</goal>
+                           </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>com.github.spotbugs</groupId>
+                      <artifactId>spotbugs-maven-plugin</artifactId>
+                      <version>4.0.4</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>com.github.spotbugs</groupId>
+                          <artifactId>spotbugs</artifactId>
+                          <version>4.0.6</version>
+                        </dependency>
+                      </dependencies>
+                      <configuration>
+                        <effort>Default</effort>
+                        <threshold>Default</threshold>
+                        <failOnError>false</failOnError>
+                        <trace>true</trace>
+                        <xmlOutput>true</xmlOutput>
+                      </configuration>
+                      <executions>
+                        <execution>
+                          <id>spotbugs</id>
+                          <phase>verify</phase>
+                          <goals>
+                            <goal>check</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-pmd-plugin</artifactId>
+                      <version>3.13.0</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>net.sourceforge.pmd</groupId>
+                          <artifactId>pmd-core</artifactId>
+                          <version>${pmdVersion}</version>
+                        </dependency>
+                        <dependency>
+                          <groupId>net.sourceforge.pmd</groupId>
+                          <artifactId>pmd-java</artifactId>
+                          <version>${pmdVersion}</version>
+                        </dependency>
+                      </dependencies>
+                      <configuration>
+                        <rulesets>
+                          <ruleset>/category/java/bestpractices.xml</ruleset>
+                          <ruleset>/category/java/codestyle.xml</ruleset>
+                          <ruleset>/category/java/design.xml</ruleset>
+                          <ruleset>/category/java/documentation.xml</ruleset>
+                          <ruleset>/category/java/errorprone.xml</ruleset>
+                          <ruleset>/category/java/multithreading.xml</ruleset>
+                          <ruleset>/category/java/performance.xml</ruleset>
+                          <ruleset>/category/java/security.xml</ruleset>
+                        </rulesets>
+                        <targetJdk>${java.version}</targetJdk>
+                        <failOnViolation>true</failOnViolation>
+                        <failurePriority>0</failurePriority>
+                        <printFailingErrors>true</printFailingErrors>
+                        <verbose>true</verbose>
+                        <analysisCache>true</analysisCache>
+                      </configuration>
+                      <executions>
+                        <execution>
+                          <id>PMD</id>
+                          <phase>verify</phase>
+                          <goals>
+                            <goal>check</goal>
+                            <goal>cpd-check</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.jacoco</groupId>
+                      <artifactId>jacoco-maven-plugin</artifactId>
+                      <version>0.8.5</version>
+                      <executions>
+                        <execution>
+                          <id>prepare-agent</id>
+                          <phase>test-compile</phase>
+                          <goals>
+                            <goal>prepare-agent</goal>
+                          </goals>
+                          <configuration>
+                            <propertyName>jacocoArgs</propertyName>
+                            <includes>
+                              <include>*</include>
+                            </includes>
+                          </configuration>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.22.2</version>
+                        <configuration>
+                          <useSystemClassLoader>false</useSystemClassLoader>
+                          <argLine>-Xmx256m ${jacocoArgs}</argLine>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
         <profile>
             <id>develop</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <resources>
+                  <resource>
+                      <directory>config/common</directory>
+                  </resource>
                   <resource>
                       <directory>config/develop</directory>
                   </resource>
@@ -229,16 +394,151 @@
                       <artifactId>maven-failsafe-plugin</artifactId>
                       <version>2.22.2</version>
                     </plugin>
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-checkstyle-plugin</artifactId>
+                      <version>3.1.1</version>
+                      <dependencies>
+                       <dependency>
+                         <groupId>com.puppycrawl.tools</groupId>
+                         <artifactId>checkstyle</artifactId>
+                         <version>8.29</version>
+                       </dependency>
+                     </dependencies>
+                     <configuration>
+                       <configLocation>google_checks.xml</configLocation>
+                       <failsOnError>false</failsOnError>
+                       <failOnViolation>true</failOnViolation>
+                       <violationSeverity>error</violationSeverity>
+                       <consoleOutput>true</consoleOutput>
+                     </configuration>
+                     <executions>
+                       <execution>
+                         <id>checkstyle</id>
+                         <phase>verify</phase>
+                           <goals>
+                             <goal>check</goal>
+                           </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>com.github.spotbugs</groupId>
+                      <artifactId>spotbugs-maven-plugin</artifactId>
+                      <version>4.0.4</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>com.github.spotbugs</groupId>
+                          <artifactId>spotbugs</artifactId>
+                          <version>4.0.6</version>
+                        </dependency>
+                      </dependencies>
+                      <configuration>
+                        <effort>Default</effort>
+                        <threshold>Default</threshold>
+                        <failOnError>false</failOnError>
+                        <trace>true</trace>
+                        <xmlOutput>true</xmlOutput>
+                      </configuration>
+                      <executions>
+                        <execution>
+                          <id>spotbugs</id>
+                          <phase>verify</phase>
+                          <goals>
+                            <goal>check</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-pmd-plugin</artifactId>
+                      <version>3.13.0</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>net.sourceforge.pmd</groupId>
+                          <artifactId>pmd-core</artifactId>
+                          <version>${pmdVersion}</version>
+                        </dependency>
+                        <dependency>
+                          <groupId>net.sourceforge.pmd</groupId>
+                          <artifactId>pmd-java</artifactId>
+                          <version>${pmdVersion}</version>
+                        </dependency>
+                      </dependencies>
+                      <configuration>
+                        <rulesets>
+                          <ruleset>/category/java/bestpractices.xml</ruleset>
+                          <ruleset>/category/java/codestyle.xml</ruleset>
+                          <ruleset>/category/java/design.xml</ruleset>
+                          <ruleset>/category/java/documentation.xml</ruleset>
+                          <ruleset>/category/java/errorprone.xml</ruleset>
+                          <ruleset>/category/java/multithreading.xml</ruleset>
+                          <ruleset>/category/java/performance.xml</ruleset>
+                          <ruleset>/category/java/security.xml</ruleset>
+                        </rulesets>
+                        <targetJdk>${java.version}</targetJdk>
+                        <failOnViolation>false</failOnViolation>
+                        <failurePriority>0</failurePriority>
+                        <printFailingErrors>false</printFailingErrors>
+                        <verbose>true</verbose>
+                        <analysisCache>true</analysisCache>
+                      </configuration>
+                      <executions>
+                        <execution>
+                          <id>PMD</id>
+                          <phase>verify</phase>
+                          <goals>
+                            <goal>check</goal>
+                            <goal>cpd-check</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.jacoco</groupId>
+                      <artifactId>jacoco-maven-plugin</artifactId>
+                      <version>0.8.5</version>
+                      <executions>
+                        <execution>
+                          <id>prepare-agent</id>
+                          <phase>test-compile</phase>
+                          <goals>
+                            <goal>prepare-agent</goal>
+                          </goals>
+                          <configuration>
+                            <propertyName>jacocoArgs</propertyName>
+                            <append>true</append>
+                            <includes>
+                              <include>*</include>
+                            </includes>
+                          </configuration>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.22.2</version>
+                        <configuration>
+                          <useSystemClassLoader>false</useSystemClassLoader>
+                          <argLine>-Xmx256m ${jacocoArgs}</argLine>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
         <profile>
             <id>production</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <resources>
+                  <resource>
+                      <directory>config/common</directory>
+                  </resource>
                   <resource>
                       <directory>config/production</directory>
                   </resource>
@@ -280,6 +580,137 @@
                     <plugin>
                       <artifactId>maven-failsafe-plugin</artifactId>
                       <version>2.22.2</version>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-checkstyle-plugin</artifactId>
+                      <version>3.1.1</version>
+                      <dependencies>
+                       <dependency>
+                         <groupId>com.puppycrawl.tools</groupId>
+                         <artifactId>checkstyle</artifactId>
+                         <version>8.29</version>
+                       </dependency>
+                     </dependencies>
+                     <configuration>
+                       <configLocation>google_checks.xml</configLocation>
+                       <failsOnError>true</failsOnError>
+                       <failOnViolation>true</failOnViolation>
+                       <violationSeverity>error</violationSeverity>
+                       <consoleOutput>true</consoleOutput>
+                     </configuration>
+                     <executions>
+                       <execution>
+                         <id>checkstyle</id>
+                         <phase>verify</phase>
+                           <goals>
+                             <goal>check</goal>
+                           </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>com.github.spotbugs</groupId>
+                      <artifactId>spotbugs-maven-plugin</artifactId>
+                      <version>4.0.4</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>com.github.spotbugs</groupId>
+                          <artifactId>spotbugs</artifactId>
+                          <version>4.0.6</version>
+                        </dependency>
+                      </dependencies>
+                      <configuration>
+                        <effort>Default</effort>
+                        <threshold>Default</threshold>
+                        <failOnError>false</failOnError>
+                        <trace>true</trace>
+                        <xmlOutput>true</xmlOutput>
+                      </configuration>
+                      <executions>
+                        <execution>
+                          <id>spotbugs</id>
+                          <phase>verify</phase>
+                          <goals>
+                            <goal>check</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-pmd-plugin</artifactId>
+                      <version>3.13.0</version>
+                      <dependencies>
+                        <dependency>
+                          <groupId>net.sourceforge.pmd</groupId>
+                          <artifactId>pmd-core</artifactId>
+                          <version>${pmdVersion}</version>
+                        </dependency>
+                        <dependency>
+                          <groupId>net.sourceforge.pmd</groupId>
+                          <artifactId>pmd-java</artifactId>
+                          <version>${pmdVersion}</version>
+                        </dependency>
+                      </dependencies>
+                      <configuration>
+                        <rulesets>
+                          <ruleset>/category/java/bestpractices.xml</ruleset>
+                          <ruleset>/category/java/codestyle.xml</ruleset>
+                          <ruleset>/category/java/design.xml</ruleset>
+                          <ruleset>/category/java/documentation.xml</ruleset>
+                          <ruleset>/category/java/errorprone.xml</ruleset>
+                          <ruleset>/category/java/multithreading.xml</ruleset>
+                          <ruleset>/category/java/performance.xml</ruleset>
+                          <ruleset>/category/java/security.xml</ruleset>
+                        </rulesets>
+                        <targetJdk>${java.version}</targetJdk>
+                        <failOnViolation>true</failOnViolation>
+                        <failurePriority>0</failurePriority>
+                        <printFailingErrors>true</printFailingErrors>
+                        <verbose>true</verbose>
+                        <analysisCache>true</analysisCache>
+                      </configuration>
+                      <executions>
+                        <execution>
+                          <id>PMD</id>
+                          <phase>verify</phase>
+                          <goals>
+                            <goal>check</goal>
+                            <goal>cpd-check</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.jacoco</groupId>
+                      <artifactId>jacoco-maven-plugin</artifactId>
+                      <version>0.8.5</version>
+                      <executions>
+                        <execution>
+                          <id>prepare-agent</id>
+                          <phase>test-compile</phase>
+                          <goals>
+                            <goal>prepare-agent</goal>
+                          </goals>
+                          <configuration>
+                            <propertyName>jacocoArgs</propertyName>
+                            <includes>
+                              <include>*</include>
+                            </includes>
+                          </configuration>
+                        </execution>
+                      </executions>
+                    </plugin>
+                    <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.22.2</version>
+                        <configuration>
+                          <useSystemClassLoader>false</useSystemClassLoader>
+                          <argLine>-Xmx256m ${jacocoArgs}</argLine>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
